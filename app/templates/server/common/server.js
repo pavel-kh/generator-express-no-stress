@@ -4,13 +4,18 @@ import * as bodyParser from 'body-parser';
 import * as http from 'http';
 import * as os from 'os';
 import cookieParser from 'cookie-parser';
+
 <% if (specification === 'openapi_3') { %>
 import oas from './oas';
 <% } else { %>
 import oas from './swagger';
 <% } %>
 import l from './logger';
+import * as https from 'https';
+import passport from 'passport';
+import fs from 'fs';
 
+const pino = require('pino-http')();
 const app = new Express();
 const exit = process.exit;
 
@@ -22,7 +27,10 @@ export default class ExpressServer {
     app.use(bodyParser.urlencoded({ extended: true, limit: process.env.REQUEST_LIMIT || '100kb' }));
     app.use(bodyParser.text({ limit: process.env.REQUEST_LIMIT || '100kb'}));
     app.use(cookieParser(process.env.SESSION_SECRET));
+    app.use(pino);
     app.use(Express.static(`${root}/public`));
+    app.use(passport.initialize());
+
   }
 
   router(routes) {
@@ -38,10 +46,18 @@ export default class ExpressServer {
       );
 
     oas(app, this.routes).then(() => {
-      http.createServer(app).listen(port, welcome(port));
-    }).catch(e => {
+      if (process.env.USE_HTTPS) {
+        https.createServer({
+          key: fs.readFileSync(process.env.SERVER_KEY),
+          cert: fs.readFileSync(process.env.SERVER_CERT),
+          ca: fs.readFileSync(process.env.SERVER_CA),
+        }, app).listen(port, welcome(port));
+      } else {
+        http.createServer(app).listen(port, welcome(port));
+      }
+    }).catch((e) => {
       l.error(e);
-      exit(1)
+      exit(1);
     });
 
     return app;

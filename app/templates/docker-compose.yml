@@ -1,0 +1,15 @@
+version: "2"
+services:
+  <%= name %>:
+    container_name: <%= name %>
+    image: <%= name %>:<%= version %>
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+
+      - ./:/var/app
+    env_file:
+     - ./.env
+    ports:
+      - "3000:3000"

@@ -1,5 +1,5 @@
 {
-  "name": "generator-express-no-stress",
+  "name": "generator-pavelkh-express-no-stress",
   "version": "10.0.1",
   "description": "Awesome APIs with ExpressJS and OpenAPI/Swagger: Features automatic request validation, interactive api doc, and more.",
   "main": "app/index.js",

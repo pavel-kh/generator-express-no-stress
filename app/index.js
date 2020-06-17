@@ -6,7 +6,7 @@ const path = require('path');
 module.exports = class extends Generator {
   constructor(args, opts) {
     super(args, opts);
-    this.argument('appname', { type: String, required: false });
+    this.argument('appname', {type: String, required: false});
     this.option('yarn', {
       description: 'Use Yarn as the package manager',
     });
@@ -23,7 +23,8 @@ module.exports = class extends Generator {
     this.specification = 'openapi_3';
   }
 
-  initializing() {}
+  initializing() {
+  }
 
   async prompting() {
     const prompts = [
@@ -47,8 +48,8 @@ module.exports = class extends Generator {
         name: 'specification',
         message: `OpenAPI spec version`,
         choices: [
-          { name: 'OpenApi 3', value: 'openapi_3' },
-          { name: 'Swagger 2', value: 'swagger_2' },
+          {name: 'OpenApi 3', value: 'openapi_3'},
+          {name: 'Swagger 2', value: 'swagger_2'},
         ],
         default: 'openapi_3',
       },
@@ -57,8 +58,8 @@ module.exports = class extends Generator {
         name: 'linter',
         message: `Linter`,
         choices: [
-          { name: 'Prettier', value: 'prettier' },
-          { name: 'Airbnb', value: 'airbnb' },
+          {name: 'Prettier', value: 'prettier'},
+          {name: 'Airbnb', value: 'airbnb'},
         ],
         default: 'prettier',
       },
@@ -82,9 +83,11 @@ module.exports = class extends Generator {
     });
   }
 
-  configuring() {}
+  configuring() {
+  }
 
-  default() {}
+  default() {
+  }
 
   get writing() {
     return {
@@ -97,6 +100,9 @@ module.exports = class extends Generator {
           'README.md',
           '.env',
           '.eslintrc.json',
+          'Dockerfile',
+          '.dockerignore',
+          'docker-compose.yml',
           'server/routes.js',
           'test/examples.controller.js',
           'server/common/api.yml',
@@ -123,11 +129,7 @@ module.exports = class extends Generator {
           copyOpts.globOptions.ignore.push(src + '/server/common/oas.js');
           copyOpts.globOptions.ignore.push(src + '/server/common/api.yml');
         }
-        if (!this.docker) {
-          copyOpts.globOptions.ignore.push(
-            src + '/+(Dockerfile|.dockerignore)'
-          );
-        }
+
 
         this.fs.copy(src, dest, copyOpts);
         this.fs.copy(this.templatePath('.*'), dest, copyOpts);
@@ -144,28 +146,29 @@ module.exports = class extends Generator {
 
         files.forEach(f => {
           this.fs.copyTpl(
-            this.templatePath(f),
-            this.destinationPath(`${this.name}/${f}`),
-            opts,
-            copyOpts
+              this.templatePath(f),
+              this.destinationPath(`${this.name}/${f}`),
+              opts,
+              copyOpts
           );
         });
 
         this.fs.move(
-          this.destinationPath(`${this.name}`, 'gitignore'),
-          this.destinationPath(`${this.name}`, '.gitignore')
+            this.destinationPath(`${this.name}`, 'gitignore'),
+            this.destinationPath(`${this.name}`, '.gitignore')
         );
         if (this.specification !== 'openapi_3') {
           this.fs.move(
-            this.destinationPath(`${this.name}`, 'server/common/api.v2.yml'),
-            this.destinationPath(`${this.name}`, 'server/common/api.yml')
+              this.destinationPath(`${this.name}`, 'server/common/api.v2.yml'),
+              this.destinationPath(`${this.name}`, 'server/common/api.yml')
           );
         }
       },
     };
   }
 
-  conflicts() {}
+  conflicts() {
+  }
 
   install() {
     const appDir = path.join(process.cwd(), this.name);
