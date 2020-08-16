@@ -1,8 +1,10 @@
-export default (func) => async (req, res, next) => {
+import l from './logger';
+
+export const handleErrorAsync = (func) => async (req, res, next) => {
   try {
     await func(req, res, next);
   } catch (error) {
-    console.log(error);
+    l.error(`catching async error ${error}`);
     next(error);
   }
 };
