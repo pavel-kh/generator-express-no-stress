@@ -1,6 +1,6 @@
 import l from './logger';
 
-export const handleErrorAsync = (func) => async (req, res, next) => {
+export default (func) => async (req, res, next) => {
   try {
     await func(req, res, next);
   } catch (error) {

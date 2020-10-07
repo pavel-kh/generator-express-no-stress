@@ -4,33 +4,37 @@ import * as bodyParser from 'body-parser';
 import * as http from 'http';
 import * as os from 'os';
 import cookieParser from 'cookie-parser';
+import './axios';
 
-<% if (specification === 'openapi_3') { %>
-import oas from './oas';
-<% } else { %>
-import oas from './swagger';
-<% } %>
-import l from './logger';
 import * as https from 'https';
 import passport from 'passport';
 import fs from 'fs';
+import l from './logger';
+import oas from './oas';
 
-const pino = require('pino-http')();
+const pino = require('pino-http')({
+  autoLogging: {
+    ignorePaths: ['/healthcheck/ping'],
+  },
+});
+
 const app = new Express();
-const exit = process.exit;
+const { exit } = process;
 
 export default class ExpressServer {
   constructor() {
     const root = path.normalize(`${__dirname}/../..`);
     app.set('appPath', `${root}client`);
     app.use(bodyParser.json({ limit: process.env.REQUEST_LIMIT || '100kb' }));
-    app.use(bodyParser.urlencoded({ extended: true, limit: process.env.REQUEST_LIMIT || '100kb' }));
-    app.use(bodyParser.text({ limit: process.env.REQUEST_LIMIT || '100kb'}));
+    app.use(bodyParser.urlencoded({
+      extended: true,
+      limit: process.env.REQUEST_LIMIT || '100kb',
+    }));
+    app.use(bodyParser.text({ limit: process.env.REQUEST_LIMIT || '100kb' }));
     app.use(cookieParser(process.env.SESSION_SECRET));
     app.use(pino);
     app.use(Express.static(`${root}/public`));
     app.use(passport.initialize());
-
   }
 
   router(routes) {
@@ -39,26 +43,29 @@ export default class ExpressServer {
   }
 
   listen(port = process.env.PORT) {
-    const welcome = p => () =>
-      l.info(
-        `up and running in ${process.env.NODE_ENV ||
-          'development'} @: ${os.hostname()} on port: ${p}}`
-      );
+    const welcome = p => () => l.info(
+        `up and running in ${process.env.NODE_ENV
+        || 'development'} @: ${os.hostname()} on port: ${p}}`,
+    );
 
-    oas(app, this.routes).then(() => {
-      if (process.env.USE_HTTPS) {
-        https.createServer({
-          key: fs.readFileSync(process.env.SERVER_KEY),
-          cert: fs.readFileSync(process.env.SERVER_CERT),
-          ca: fs.readFileSync(process.env.SERVER_CA),
-        }, app).listen(port, welcome(port));
-      } else {
-        http.createServer(app).listen(port, welcome(port));
-      }
-    }).catch((e) => {
-      l.error(e);
-      exit(1);
-    });
+    oas(app, this.routes)
+        .then(() => {
+          if (process.env.USE_HTTPS) {
+            https.createServer({
+              key: fs.readFileSync(process.env.SERVER_KEY),
+              cert: fs.readFileSync(process.env.SERVER_CERT),
+              ca: fs.readFileSync(process.env.SERVER_CA),
+            }, app)
+                .listen(port, welcome(port));
+          } else {
+            http.createServer(app)
+                .listen(port, welcome(port));
+          }
+        })
+        .catch(e => {
+          l.error(e);
+          exit(1);
+        });
 
     return app;
   }

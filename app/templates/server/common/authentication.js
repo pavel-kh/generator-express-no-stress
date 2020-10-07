@@ -1,22 +1,24 @@
 import passport from 'passport';
-import awsService from '../api/services/aws.service';
+import fs from 'fs';
 
 const ClientCertStrategy = require('passport-client-cert').Strategy;
 
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
-
-
-awsService.getHttpsCertificates().then(secret => {
-  const jwtPublic = Buffer.from(secret['jwt-public'], 'base64').toString();
-
-  passport.use('jwt', new JwtStrategy({
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: jwtPublic
-  }, function (jwt_payload, done) {
-    return done(null, jwt_payload);
-  }));
-})
+const privateKey = process.env.JWT_PUBLIC_KEY_PATH ? fs.readFileSync(process.env.JWT_PUBLIC_KEY_PATH).toString() : 's';
+passport.use(new JwtStrategy({
+  jwtFromRequest: function (req) {
+    if(req.headers.authorization){
+      return ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+    } else if (req && req.cookies && req.cookies['jwt']) {
+      return req.cookies['jwt'];
+    }
+    return '';
+  },
+  secretOrKey: privateKey,
+}, function (jwtPayload, done) {
+  return done(null, jwtPayload);
+}));
 
 
 passport.use('client-cert', new ClientCertStrategy(function (clientCert, done) {
