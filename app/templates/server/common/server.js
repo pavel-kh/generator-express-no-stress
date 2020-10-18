@@ -9,30 +9,25 @@ import './axios';
 import * as https from 'https';
 import passport from 'passport';
 import fs from 'fs';
-import l from './logger';
+import l, {pinoHttp, expressLoggerClsMiddleware} from './logger';
 import oas from './oas';
 
-const pino = require('pino-http')({
-  autoLogging: {
-    ignorePaths: ['/healthcheck/ping'],
-  },
-});
-
 const app = new Express();
-const { exit } = process;
+const {exit} = process;
 
 export default class ExpressServer {
   constructor() {
     const root = path.normalize(`${__dirname}/../..`);
     app.set('appPath', `${root}client`);
-    app.use(bodyParser.json({ limit: process.env.REQUEST_LIMIT || '100kb' }));
+    app.use(bodyParser.json({limit: process.env.REQUEST_LIMIT || '100kb'}));
     app.use(bodyParser.urlencoded({
       extended: true,
       limit: process.env.REQUEST_LIMIT || '100kb',
     }));
-    app.use(bodyParser.text({ limit: process.env.REQUEST_LIMIT || '100kb' }));
+    app.use(bodyParser.text({limit: process.env.REQUEST_LIMIT || '100kb'}));
     app.use(cookieParser(process.env.SESSION_SECRET));
-    app.use(pino);
+    app.use(expressLoggerClsMiddleware);
+    app.use(pinoHttp);
     app.use(Express.static(`${root}/public`));
     app.use(passport.initialize());
   }
