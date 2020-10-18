@@ -10,6 +10,8 @@ tags:
     description: Simple example endpoints
   - name: Specification
     description: The swagger API specification
+security:
+  - bearerAuth: []
 paths:
   /examples:
     get:
@@ -106,6 +108,11 @@ paths:
           description: Return the API specification
           content: {}
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
   schemas:
     Example:
       type: object
